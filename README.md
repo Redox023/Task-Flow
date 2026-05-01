@@ -1,74 +1,44 @@
-# Team Flow — Full-Stack Task Management App
+# Team Flow
 
-A full-stack project/task management application built with **React + Vite** (frontend) and **Node.js + Express + MongoDB** (backend), deployable on **Railway**.
+This is my submission for the full-stack technical assessment. Team Flow is a task management application designed to handle project creation, role-based member management, and task tracking. 
+
+The goal was to build a clean, functional API and a responsive frontend while focusing on proper authentication and database architecture.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, Vite, Zustand, Axios, TailwindCSS |
-| Backend | Node.js, Express |
-| Database | **MongoDB** (Mongoose ODM) |
-| Auth | JWT (access + refresh tokens) |
-| Deployment | Railway |
+*   **Frontend:** React 18 (Vite), Zustand for state management, Axios, TailwindCSS
+*   **Backend:** Node.js, Express
+*   **Database:** MongoDB with Mongoose ODM
+*   **Auth:** JWT (Access and Refresh token rotation)
+*   **Deployment:** Railway
 
----
+## Core Features
 
-## Features
+*   **Authentication Flow:** Secure signup, login, and logout utilizing JWT access and refresh tokens.
+*   **Project Management:** Users can create projects and invite others via email search. Roles are split into Admin and Member.
+*   **Task Tracking:** Full CRUD for tasks. Tasks can be assigned, updated (priority/status), and filtered.
+*   **Analytics Dashboard:** A high-level view showing task completion rates, overdue tasks, and workload breakdown.
+*   **Security & Validation:** All incoming requests are validated using Joi schemas. Implemented basic rate-limiting (200 req / 15 min per IP) to prevent abuse.
 
-- 🔐 **JWT Authentication** — signup, login, refresh token rotation, logout
-- 📁 **Projects** — create projects, invite members (ADMIN / MEMBER roles)
-- ✅ **Tasks** — create, assign, update status/priority, filter by status/priority/assignee
-- 📊 **Dashboard** — task stats, completion rate, overdue tasks, breakdown by assignee & priority
-- 🔍 **User Search** — find users by email to add to projects
-- 🛡️ **Validation** — Joi schemas on all endpoints
-- ⚡ **Rate Limiting** — 200 req / 15 min per IP
+## Structure Overview
 
----
-
-## Project Structure
-
-```
+```text
 taskflow/
 ├── backend/
 │   ├── src/
-│   │   ├── config/         # MongoDB connection (db.js)
-│   │   ├── controllers/    # Business logic
-│   │   ├── middleware/     # Auth, error handling
-│   │   ├── models/         # Mongoose models (User, Project, Task, RefreshToken)
-│   │   ├── routes/         # Express routers
-│   │   └── utils/          # JWT, response helpers, Joi validators
-│   ├── server.js
-│   ├── .env.example
-│   └── railway.toml
-├── frontend/
-│   ├── src/
-│   │   ├── api/            # Axios client + service calls
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Login, Signup, Projects, Project, Dashboard
-│   │   └── store/          # Zustand state (auth, projects)
-│   ├── .env.example
-│   └── railway.toml
-└── README.md
-```
-
----
-
-## Local Development
-
-### Prerequisites
-- Node.js 18+
-- MongoDB running locally **OR** a MongoDB Atlas connection string
-
-### Backend
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env — set MONGODB_URI, JWT secrets
-npm install
-npm run dev        # nodemon on port 5000
-```
+│   │   ├── config/         # DB connection config
+│   │   ├── controllers/    # Route logic
+│   │   ├── middleware/     # Auth checks, error handling
+│   │   ├── models/         # Mongoose schemas (User, Project, Task, RefreshToken)
+│   │   ├── routes/         # Express routing
+│   │   └── utils/          # Helpers (JWT generation, Joi validation)
+│   └── server.js
+└── frontend/
+    └── src/
+        ├── api/            # Axios instance and API calls
+        ├── components/     # Reusable UI elements
+        ├── pages/          # Main views (Dashboard, Projects, Login, etc.)
+        └── store/          # Zustand slices
 
 ### Frontend
 
@@ -119,25 +89,32 @@ See the [Railway Deployment Guide](./railway_deploy_guide.md) for step-by-step i
 
 ## API Reference
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| POST | `/api/v1/auth/signup` | — | Register |
-| POST | `/api/v1/auth/login` | — | Login |
-| POST | `/api/v1/auth/refresh` | — | Refresh tokens |
-| POST | `/api/v1/auth/logout` | — | Logout |
-| GET | `/api/v1/auth/me` | ✅ | Current user |
-| GET | `/api/v1/projects` | ✅ | List projects |
-| POST | `/api/v1/projects` | ✅ | Create project |
-| GET | `/api/v1/projects/:id` | ✅ | Get project |
-| DELETE | `/api/v1/projects/:id` | ✅ Admin | Delete project |
-| PATCH | `/api/v1/projects/:id/members` | ✅ Admin | Add/remove member |
-| GET | `/api/v1/projects/:id/tasks` | ✅ | List tasks |
-| POST | `/api/v1/projects/:id/tasks` | ✅ Admin | Create task |
-| PATCH | `/api/v1/tasks/:id` | ✅ | Update task |
-| DELETE | `/api/v1/tasks/:id` | ✅ Admin | Delete task |
-| GET | `/api/v1/dashboard` | ✅ | Dashboard stats |
-| GET | `/api/v1/users/search` | ✅ | Search users by email |
-| GET | `/health` | — | Health check |
+All protected routes require a valid JWT access token in the `Authorization` header.
+
+### Authentication
+*   **POST** `/api/v1/auth/signup` - Register a new account
+*   **POST** `/api/v1/auth/login` - Authenticate user
+*   **POST** `/api/v1/auth/refresh` - Issue new access and refresh tokens
+*   **POST** `/api/v1/auth/logout` - Invalidate refresh token
+*   **GET** `/api/v1/auth/me` - Get current user profile (Protected)
+
+### Projects
+*   **GET** `/api/v1/projects` - List all projects (Protected)
+*   **POST** `/api/v1/projects` - Create a new project (Protected)
+*   **GET** `/api/v1/projects/:id` - Get specific project details (Protected)
+*   **DELETE** `/api/v1/projects/:id` - Delete a project (Protected, Admin only)
+*   **PATCH** `/api/v1/projects/:id/members` - Add or remove project members (Protected, Admin only)
+
+### Tasks
+*   **GET** `/api/v1/projects/:id/tasks` - List all tasks for a specific project (Protected)
+*   **POST** `/api/v1/projects/:id/tasks` - Create a new task (Protected, Admin only)
+*   **PATCH** `/api/v1/tasks/:id` - Update task status or priority (Protected)
+*   **DELETE** `/api/v1/tasks/:id` - Delete a task (Protected, Admin only)
+
+### Miscellaneous 
+*   **GET** `/api/v1/dashboard` - Get dashboard statistics and completion rates (Protected)
+*   **GET** `/api/v1/users/search` - Search for users by email (Protected)
+*   **GET** `/health` - API health check (Public)
 
 ---
 
