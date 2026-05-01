@@ -1,0 +1,262 @@
+{
+  "info": {
+    "name": "TaskFlow API",
+    "description": "Complete API collection for TaskFlow — Team Task Management Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:5000/api/v1" },
+    { "key": "accessToken",  "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "projectId",    "value": "" },
+    { "key": "taskId",       "value": "" },
+    { "key": "userId",       "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) {",
+            "  const d = pm.response.json().data;",
+            "  pm.collectionVariables.set('accessToken',  d.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', d.refreshToken);",
+            "  pm.collectionVariables.set('userId', d.user.id);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/signup",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 200) {",
+            "  const d = pm.response.json().data;",
+            "  pm.collectionVariables.set('accessToken',  d.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', d.refreshToken);",
+            "  pm.collectionVariables.set('userId', d.user.id);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alice@taskflow.dev\",\n  \"password\": \"password123\"\n}" }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 200) {",
+            "  const d = pm.response.json().data;",
+            "  pm.collectionVariables.set('accessToken',  d.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', d.refreshToken);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List My Projects",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/projects",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        },
+        {
+          "name": "Create Project",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) {",
+            "  pm.collectionVariables.set('projectId', pm.response.json().data.project.id);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/projects",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"My New Project\",\n  \"description\": \"A test project created via Postman\"\n}" }
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/projects/{{projectId}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        },
+        {
+          "name": "Add Member (Admin only)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/projects/{{projectId}}/members",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"add\",\n  \"userId\": \"{{userId}}\",\n  \"role\": \"MEMBER\"\n}" }
+          }
+        },
+        {
+          "name": "Remove Member (Admin only)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/projects/{{projectId}}/members",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"remove\",\n  \"userId\": \"{{userId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Project (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/projects/{{projectId}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List Project Tasks",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "tasks"],
+              "query": [
+                { "key": "status",     "value": "TODO",     "disabled": true },
+                { "key": "priority",   "value": "HIGH",     "disabled": true },
+                { "key": "assigneeId", "value": "{{userId}}", "disabled": true }
+              ]
+            },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        },
+        {
+          "name": "Create Task (Admin only)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 201) {",
+            "  pm.collectionVariables.set('taskId', pm.response.json().data.task.id);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/projects/{{projectId}}/tasks",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"New Task from Postman\",\n  \"description\": \"Detailed task description here\",\n  \"dueDate\": \"2025-12-31\",\n  \"priority\": \"HIGH\",\n  \"assigneeId\": null\n}" }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/tasks/{{taskId}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}" }
+          }
+        },
+        {
+          "name": "Update Task (Full — Admin)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/tasks/{{taskId}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Task Title\",\n  \"description\": \"Updated description\",\n  \"dueDate\": \"2025-11-30\",\n  \"priority\": \"MEDIUM\",\n  \"status\": \"IN_PROGRESS\",\n  \"assigneeId\": null\n}" }
+          }
+        },
+        {
+          "name": "Delete Task (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/tasks/{{taskId}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Global Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/dashboard",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        },
+        {
+          "name": "Project Dashboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard?projectId={{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"],
+              "query": [{ "key": "projectId", "value": "{{projectId}}" }]
+            },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Search Users by Email",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/search?email=alice",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "search"],
+              "query": [{ "key": "email", "value": "alice" }]
+            },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] }
+          }
+        }
+      ]
+    }
+  ]
+}
