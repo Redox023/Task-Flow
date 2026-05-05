@@ -1,6 +1,6 @@
 # Team Flow
 
-This is my submission for the full-stack technical assessment. Team Flow is a task management application designed to handle project creation, role-based member management, and task tracking. 
+Team Flow is a task management application designed to handle project creation, role-based member management, and task tracking. 
 
 The goal was to build a clean, functional API and a responsive frontend while focusing on proper authentication and database architecture.
 
